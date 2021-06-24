@@ -1,15 +1,11 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[14]:
-
-
-#Importar as bibliotecas
-import geemap
-import datetime
+####################################################################################################################################################################
+#Algoritmo desenvolvido para mapear áreas construídas em sedes municipais de cidades amazônicas                                                                    #
+#Esse script foi criado para classificar imaagens Sentinel-2, também são utilizados dados do VIIRS, pontos de sedes municipais (IBGE) e amostras de treinamento    #
+#O mapa temático final possui 5 classes: Solo Exposto; Área Construída, Água, Vegetação Arbórea e Vegetação Herbácea                                               #
+#                                                             Autor: Gabriel Crivellaro Gonçalves                                                                  #
+####################################################################################################################################################################
+#Importar as bibliotecas do GEE e iniciar a API python do gee
 import ee
-import pandas as pd
-import time
 ee.Initialize()
 #Mostra uma mensagem informando que as bibliotecas foram importadas com sucesso
 print('Imports ok!')
