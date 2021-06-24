@@ -1,7 +1,7 @@
 ####################################################################################################################################################################
 #Algoritmo desenvolvido para mapear áreas construídas em sedes municipais de cidades amazônicas                                                                    #
 #Esse script foi criado para classificar imaagens Sentinel-2, também são utilizados dados do VIIRS, pontos de sedes municipais (IBGE) e amostras de treinamento    #
-#O mapa temático final possui 5 classes: Solo Exposto; Área Construída, Água, Vegetação Arbórea e Vegetação Herbácea                                               #
+#O mapa temático final possui 5 classes: Solo Exposto; Área Construída, Água, Vegetação Herbácea e Vegetação Arbórea                                               #
 #                                                             Autor: Gabriel Crivellaro Gonçalves                                                                  #
 ####################################################################################################################################################################
 #Importar as bibliotecas do GEE e iniciar a API python do gee
@@ -176,7 +176,7 @@ for i in sede_id:
     B_BLUE = s2CloudMasked_sede.select('B2')
     B_NIR = s2CloudMasked_sede.select('B8')
     
-    #Utiliza a função compute_probabilistic_glcm para requantizar as bandas e gera a matrix GLCM e calcula as métricas
+    #Utiliza a função compute_probabilistic_glcm para requantizar as bandas, gerar a matrix GLCM e calcular as métricas
     RED_GLCM = compute_probabilistic_glcm(B_RED.clip(AOI_sede.bounds()),16,10,2,AOI_sede)
     GREEN_GLCM = compute_probabilistic_glcm(B_GREEN.clip(AOI_sede.bounds()),16,10,2,AOI_sede)
     BLUE_GLCM = compute_probabilistic_glcm(B_BLUE.clip(AOI_sede.bounds()),16,10,2,AOI_sede)
