@@ -209,7 +209,7 @@ for i in sede_id:
     #print ('Labels:',labels)
     
     #Cria um classificador random forest e treina com as amostras coletadas.
-    classifier = ee.Classifier.smileRandomForest(1000).train(features= trainingNoNulls,classProperty='C_ID')
+    classifier = ee.Classifier.smileRandomForest(numberOfTrees=1000,bagFraction=0.5,seed = 1).train(features= trainingNoNulls,classProperty='C_ID')
     #Classifica a imagem com o Rabdom Forest
     classified = image_class.classify(classifier)
     
