@@ -1,8 +1,10 @@
 ####################################################################################################################################################################
-#Algoritmo desenvolvido para mapear áreas construídas em sedes municipais de cidades amazônicas                                                                    #
-#Esse script foi criado para classificar imaagens Sentinel-2, também são utilizados dados do VIIRS, pontos de sedes municipais (IBGE) e amostras de treinamento    #
-#O mapa temático final possui 5 classes: Solo Exposto; Área Construída, Água, Vegetação Arbórea e Vegetação Herbácea                                               #
+#                                  Algoritmo desenvolvido para mapear áreas construídas em sedes municipais de cidades amazônicas                                  #
+#  Esse script foi criado para classificar imaagens Sentinel-2, também são utilizados dados do VIIRS, pontos de sedes municipais (IBGE) e amostras de treinamento  #
+#                            O mapa temático final possui 5 classes: Solo Exposto; Área Construída, Água, Vegetação Arbórea e Vegetação Herbácea                   #
 #                                                             Autor: Gabriel Crivellaro Gonçalves                                                                  #
+#                                                       Dissertação de Mestrado em Sensoriamento Remoto                                                            #
+#                                                          Instituto Nacional de Pesquisas Espaciais                                                               #
 ####################################################################################################################################################################
 #Importar as bibliotecas do GEE e iniciar a API python do gee
 import ee
