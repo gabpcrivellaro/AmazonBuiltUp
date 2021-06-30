@@ -1,9 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
-
+#####################################################################################################################
+#  Algotitmo para fusão de imagens pelo método IHS (DOU et al., 2007) das imagens do sensor WPM a bordo do CBERS-4A #
+#####################################################################################################################
 #Importar as bibliotecas
 import ee
 ee.Initialize()
