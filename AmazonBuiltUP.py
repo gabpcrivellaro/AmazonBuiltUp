@@ -1,12 +1,11 @@
-####################################################################################################################################################################
-#                                  Algoritmo desenvolvido para mapear áreas construídas em sedes municipais de cidades amazônicas                                  #
-#  Esse script foi criado para classificar imaagens Sentinel-2, também são utilizados dados do VIIRS, pontos de sedes municipais (IBGE) e amostras de treinamento  #
-#                            O mapa temático final possui 5 classes: Solo Exposto; Área Construída, Água, Vegetação Arbórea e Vegetação Herbácea                   #
-#                                                             Autor: Gabriel Crivellaro Gonçalves                                                                  #
-#                                                       Dissertação de Mestrado em Sensoriamento Remoto                                                            #
-#                                                          Instituto Nacional de Pesquisas Espaciais                                                               #
-####################################################################################################################################################################
-#Importar as bibliotecas do GEE e iniciar a API python do gee
+#######################################################################################################################
+#Algoritmo desenvolvido para mapear áreas construídas em sedes municipais de cidades amazônicas                       #
+#Esse script foi criado para classificar imaagens Sentinel-2, também são utilizados dados do VIIRS,                   #
+#pontos de sedes municipais (IBGE) e amostras de treinamento                                                          #
+#O mapa temático final possui 5 classes: Solo Exposto; Área Construída, Água, Vegetação Arbórea e Vegetação Herbácea  #
+#              Autor: Gabriel Crivellaro Gonçalves                                                                    #
+#######################################################################################################################
+#Importar as bibliotecas
 import ee
 ee.Initialize()
 #Mostra uma mensagem informando que as bibliotecas foram importadas com sucesso
@@ -66,6 +65,17 @@ def probabilistic_quantizer(img,num_levels,scale,geom):
     mul_col = ee.ImageCollection(l.map(create_quantized_col))
 
     return mul_col.mosaic()
+#Função para renomear as bandas conforme a banda de origem e remover a a banda "glcm_maxcorr"
+def spectral_glcm_band_name(glcm_image,spectral_band):
+    bandname = spectral_band.bandNames().getInfo()
+    bandname = str(bandname[0])
+    new_glcm_band_names = []
+    glcm_bands_names = glcm_image.bandNames().remove("glcm_maxcorr").getInfo()
+    for i in glcm_bands_names:
+        band_name_glcm = bandname+'_'+i
+        new_glcm_band_names.append(band_name_glcm)
+    glcm_image_N = glcm_image.select(glcm_bands_names).rename(new_glcm_band_names)
+    return glcm_image_N
 #Cria Função que adiociona um campo (sede) no vetor poligonos de áreas iluminadas (VIIRS) 
 # e atribui 1 para os poligonos que intersectam os pontos das sedes municipais e 0 que não intersectam.
 def cruzaSede(ft):
@@ -83,7 +93,7 @@ print('Funções ok!')
 #Calcula a média das composições mensais do VIIRS dentre o período definido
 nighttime=col_viirs.mean().clip(geometry).select('avg_rad')
 #Cria uma imagem bináriacom valor de 1 para os pixels com valor maior que 1 e 0 para os pixels com valore menor que 1
-zones = nighttime.gt(1)
+zones = nighttime.gt(0.8)
 #Vetoriza a imagem binária do viirs
 vectors = zones.addBands(nighttime).reduceToVectors(geometry = geometry,
                                                      crs="EPSG:31981",
@@ -134,7 +144,7 @@ for i in sede_id:
 #Mostra uma linha vazia para separar as informações
 print()
 #Mostra uma mensagem informando que a AOI1 foi criada com sucesso
-print('AOI1 pronto!')
+print('AOI pronto!')
 #Filtra as imagens da coleção Sentinel-2 que intersectam a AOI1 e atendem ao intevalo de datas definido 
 criteria = s2Sr_col.filterBounds(AOI1).filterDate(START_DATE,END_DATE)
 #Aplica a função maskEdges na imagem
@@ -168,42 +178,63 @@ for i in sede_id:
     #Cria uma imagem que corresponda a geometria da sede     
     s2CloudMasked_sede = s2CloudMasked.clip(AOI_sede)
     #Calcula o NDVI
-    ndvi = ee.Image(s2CloudMasked_sede.normalizedDifference(['B8', 'B4']))
+    ndvi = ee.Image(s2CloudMasked_sede.normalizedDifference(['B8', 'B4'])).rename('NDVI')
     #Calcula o NDWI
-    ndwi = ee.Image(s2CloudMasked_sede.normalizedDifference(['B3', 'B8']))
+    ndwi = ee.Image(s2CloudMasked_sede.normalizedDifference(['B3', 'B8'])).rename('NDWI')
     
     #Cria uma banda espectral para cada banda utilizada
-    B_RED = s2CloudMasked_sede.select('B4')
-    B_GREEN = s2CloudMasked_sede.select('B3')
-    B_BLUE = s2CloudMasked_sede.select('B2')
-    B_NIR = s2CloudMasked_sede.select('B8')
+    B_RED = s2CloudMasked_sede.select('B4').rename('R')
+    B_GREEN = s2CloudMasked_sede.select('B3').rename('G')
+    B_BLUE = s2CloudMasked_sede.select('B2').rename('B')
+    B_NIR = s2CloudMasked_sede.select('B8').rename('N')
     
+    #Definir o número níveis de cinza final após a requantização
+    dig_levels = 16
+    #Definir o tamamnho da janela Kernel
+    kernel = 2
+    #Definir o número de árvores de decisão no RF
+    trees = 1000
+    #Cria uma string com todas as infos do processamento e mostra
+    s = s+'_IGLCM_T'+str(trees)+'_W'+str(kernel)+'_DL'+str(dig_levels)
+    print("Número de níveis de cinza: ",dig_levels)
+    print("Tmanho da janela: ",kernel+1,'X',kernel+1)
+    print("Número de árvores: ",trees)
+
     #Utiliza a função compute_probabilistic_glcm para requantizar as bandas e gera a matrix GLCM e calcula as métricas
-    RED_GLCM = compute_probabilistic_glcm(B_RED.clip(AOI_sede.bounds()),16,10,2,AOI_sede)
-    GREEN_GLCM = compute_probabilistic_glcm(B_GREEN.clip(AOI_sede.bounds()),16,10,2,AOI_sede)
-    BLUE_GLCM = compute_probabilistic_glcm(B_BLUE.clip(AOI_sede.bounds()),16,10,2,AOI_sede)
-    NIR_GLCM = compute_probabilistic_glcm(B_NIR.clip(AOI_sede.bounds()),16,10,2,AOI_sede)
+    #Renomeia todas as bandas de textura adicionando o nome da banda de origem e remover a a banda "glcm_maxcorr"
+    RED_GLCM = compute_probabilistic_glcm(B_RED.clip(AOI_sede.bounds()),dig_levels,10,kernel,AOI_sede)
+    RED_GLCM = spectral_glcm_band_name(RED_GLCM,B_RED)
+    GREEN_GLCM = compute_probabilistic_glcm(B_GREEN.clip(AOI_sede.bounds()),dig_levels,10,kernel,AOI_sede)
+    GREEN_GLCM = spectral_glcm_band_name(GREEN_GLCM,B_GREEN)
+    BLUE_GLCM = compute_probabilistic_glcm(B_BLUE.clip(AOI_sede.bounds()),dig_levels,10,kernel,AOI_sede)
+    BLUE_GLCM = spectral_glcm_band_name(BLUE_GLCM,B_BLUE)
+    NIR_GLCM = compute_probabilistic_glcm(B_NIR.clip(AOI_sede.bounds()),dig_levels,10,kernel,AOI_sede)
+    NIR_GLCM = spectral_glcm_band_name(NIR_GLCM,B_NIR)
+    NDVI_GLCM = compute_probabilistic_glcm(ndvi.clip(geometry.bounds()),dig_levels,10,kernel,geometry)
+    NDVI_GLCM = spectral_glcm_band_name(NDVI_GLCM,ndvi)
+    NDWI_GLCM = compute_probabilistic_glcm(ndwi.clip(geometry.bounds()),dig_levels,10,kernel,geometry)
+    NDWI_GLCM = spectral_glcm_band_name(NDWI_GLCM,ndwi)
     #Cria uma imagem com as 4 bandas espectrais, 18 métricas de textura para cada banda espectral, NDVI e NDWI
-    image_class = RED_GLCM.addBands(GREEN_GLCM).addBands(BLUE_GLCM).addBands(NIR_GLCM).addBands(B_RED).addBands(B_GREEN).addBands(B_BLUE).addBands(B_NIR).addBands(ndvi).addBands(ndwi)
-    
+    image_class = RED_GLCM.addBands(GREEN_GLCM).addBands(BLUE_GLCM).addBands(NIR_GLCM).addBands(NDVI_GLCM).addBands(NDWI_GLCM).addBands(B_RED).addBands(B_GREEN).addBands(B_BLUE).addBands(B_NIR).addBands(ndvi).addBands(ndwi)
+
     #carregar as amostras
     sample = ee.FeatureCollection("users/gabrielcrivellarog/amostra_2020_ALL");
     #Cria uma coluna com valores aleatórios entre 0 e 1 para cada polígono
     sample = sample.randomColumn()
     #Definir o percentual a ser utilziado para teste e treinamento
-    split = 0.8
+    split = 0.6
     #Cria uma camada vetorial com as amostras de treinamento
     training = sample.filter(ee.Filter.lt('random', split))
     #Cria uma camada vetorial com as amostras de teste
     validation = sample.filter(ee.Filter.gte('random', split))
     
     #Extrai todas as informações de todas bandas de todos os pixels que intersectam os poligonos
-    training_values = image_class.sampleRegions(collection= training,properties= ['C_ID'],scale= 10)
+    training_values = image_class.sampleRegions(collection= training,properties= ['C_ID'],scale= 10,geometries=True)
     #Remove as amostras que podem ter ficado em área sem informação
     trainingNoNulls = training_values.filter(ee.Filter.notNull(training_values.first().propertyNames()))
     #Exporta para o GoogleDrive uma planillha com os valores amostrados para cada pixel
     N_TD= s + '_treino' 
-    task=ee.batch.Export.table.toDrive(collection = trainingNoNulls,description = N_TD, folder = 'TrainingData')
+    task=ee.batch.Export.table.toDrive(collection = trainingNoNulls,description = N_TD, folder = 'AmazonBuiltUP')
     task.start()
     
     #Conta o numero de amostras utilizadas no treinamento
@@ -211,51 +242,50 @@ for i in sede_id:
     #print ('Labels:',labels)
     
     #Cria um classificador random forest e treina com as amostras coletadas.
-    classifier = ee.Classifier.smileRandomForest(numberOfTrees=1000,bagFraction=0.5,seed = 1).train(features= trainingNoNulls,classProperty='C_ID')
+    classifier = ee.Classifier.smileRandomForest(numberOfTrees=trees,bagFraction=1,seed=1).train(features= trainingNoNulls,classProperty='C_ID')
     #Classifica a imagem com o Rabdom Forest
     classified = image_class.classify(classifier)
-    
+
     #Concateda a sigla do municipio com a identificação da imagem de saída
     name = s+'_CLASS_20'
     #Exporta para o GoogleDrive o mapa temático final
-    task_im = ee.batch.Export.image.toDrive(image = classified, description=name, folder='CLASS', region=AOI_sede, scale=10, crs = 'EPSG:31981')
+    task_im = ee.batch.Export.image.toDrive(image = classified, description=name, folder='AmazonBuiltUP', region=AOI_sede, scale=10, crs = 'EPSG:31981')
     task_im.start()
     
     #Cria um dicionário com os resultados do RF
     dict_ = classifier.explain()
 
-
     #Exporta os resultados do classificador em uma tabela no GDrive
     explain = ee.FeatureCollection(ee.Feature(None, ee.Dictionary(dict_)))
     N_explain = s + '_explain' 
-    task_explain=ee.batch.Export.table.toDrive(collection = explain, description = N_explain, folder = 'Explain') 
+    task_explain=ee.batch.Export.table.toDrive(collection = explain, description = N_explain, folder = 'AmazonBuiltUP') 
     task_explain.start() 
     
     #Exporta os a importancia das variáveis do classificador em uma tabela no GDrive
     variable_importance = ee.FeatureCollection(ee.Feature(None, ee.Dictionary(dict_).get('importance')))
     N_ID = s + '_importance' 
-    task_i=ee.batch.Export.table.toDrive(collection = variable_importance, description = N_ID, folder = 'ImportanceData') 
+    task_i=ee.batch.Export.table.toDrive(collection = variable_importance, description = N_ID, folder = 'AmazonBuiltUP') 
     task_i.start()
     
     #Exporta a matrix de confusão em uma tabela no GDrive
     ta = classifier.confusionMatrix()
     train_accuracy = ee.Feature(None,{'matrix':ta.array()})
     N_AT = s + '_Acuracia_treino' 
-    task_it=ee.batch.Export.table.toDrive(collection = ee.FeatureCollection(train_accuracy), description = N_AT, folder = 'AcuraciaTreino') 
+    task_it=ee.batch.Export.table.toDrive(collection = ee.FeatureCollection(train_accuracy), description = N_AT, folder = 'AmazonBuiltUP') 
     task_it.start()
     
     #Exporta a validação do classificador em uma tabela no GDrive
-    validated_values = classified.sampleRegions(collection= validation,properties= ['C_ID'],scale= 10)
+    validated_values = classified.sampleRegions(collection= validation,properties= ['C_ID'],scale= 10,geometries=True)
     validated_valuesNoNulls = validated_values.filter(ee.Filter.notNull(validated_values.first().propertyNames()))
-    test_accuracy = ee.Feature(None,{'matrix':(validated_valuesNoNulls.errorMatrix('C_ID', 'classification')).array()})
+    N_TDP= s + '_teste_p' 
+    taskTP=ee.batch.Export.table.toDrive(collection = validated_valuesNoNulls,description = N_TDP, folder = 'AmazonBuiltUP')
+    taskTP.start()    
+    test_accuracy = ee.Feature(None,{'matrix':(validated_valuesNoNulls.errorMatrix('C_ID', 'classification',[1,2,3,4,5])).array()})
     N_TA = s + '_Acuracia_teste' 
-    task_ta=ee.batch.Export.table.toDrive(collection = ee.FeatureCollection(test_accuracy), description = N_TA, folder = 'AcuraciaTeste') 
+    task_ta=ee.batch.Export.table.toDrive(collection = ee.FeatureCollection(test_accuracy), description = N_TA, folder = 'AmazonBuiltUP') 
     task_ta.start()
-    
     #Mostra uma mensagem informando que o prcessamento de uma das sedes foi concluído
     print(Sede_nome, 'Pronto!')
-    
 #Mostra que a classificação foi conclúida e mostra o valor das do pixel de cada classe
 print('Processamento concluído! - Solo Exposto: 1; Área Construída: 2; Água: 3; Herbácea: 4; Arbórea: 5.')
 print('Fim!')
-
