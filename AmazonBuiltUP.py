@@ -210,12 +210,9 @@ for i in sede_id:
     BLUE_GLCM = spectral_glcm_band_name(BLUE_GLCM,B_BLUE)
     NIR_GLCM = compute_probabilistic_glcm(B_NIR.clip(AOI_sede.bounds()),dig_levels,10,kernel,AOI_sede)
     NIR_GLCM = spectral_glcm_band_name(NIR_GLCM,B_NIR)
-    NDVI_GLCM = compute_probabilistic_glcm(ndvi.clip(geometry.bounds()),dig_levels,10,kernel,geometry)
-    NDVI_GLCM = spectral_glcm_band_name(NDVI_GLCM,ndvi)
-    NDWI_GLCM = compute_probabilistic_glcm(ndwi.clip(geometry.bounds()),dig_levels,10,kernel,geometry)
-    NDWI_GLCM = spectral_glcm_band_name(NDWI_GLCM,ndwi)
+
     #Cria uma imagem com as 4 bandas espectrais, 18 métricas de textura para cada banda espectral, NDVI e NDWI
-    image_class = RED_GLCM.addBands(GREEN_GLCM).addBands(BLUE_GLCM).addBands(NIR_GLCM).addBands(NDVI_GLCM).addBands(NDWI_GLCM).addBands(B_RED).addBands(B_GREEN).addBands(B_BLUE).addBands(B_NIR).addBands(ndvi).addBands(ndwi)
+    image_class = RED_GLCM.addBands(GREEN_GLCM).addBands(BLUE_GLCM).addBands(NIR_GLCM).addBands(B_RED).addBands(B_GREEN).addBands(B_BLUE).addBands(B_NIR).addBands(ndvi).addBands(ndwi)
 
     #carregar as amostras
     sample = ee.FeatureCollection("users/gabrielcrivellarog/amostra_2020_ALL");
