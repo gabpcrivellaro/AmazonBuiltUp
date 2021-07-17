@@ -241,7 +241,7 @@ for i in sede_id:
     trainingNoNulls = training_values.filter(ee.Filter.notNull(training_values.first().propertyNames()))
     #Exporta para o GoogleDrive uma planillha com os valores amostrados para cada pixel
     N_TD= s + '_treino' 
-    task=ee.batch.Export.table.toDrive(collection = trainingNoNulls,description = N_TD, folder = 'AmazonBuiltUP_6')
+    task=ee.batch.Export.table.toDrive(collection = trainingNoNulls,description = N_TD, folder = 'AmazonBuiltUp_MRF')
     task.start()
     
     #Conta o numero de amostras utilizadas no treinamento
@@ -255,7 +255,7 @@ for i in sede_id:
     #Concateda a sigla do municipio com a identificação da imagem de saída
     name = s+'_CLASS_20'
     #Exporta para o GoogleDrive o mapa temático final
-    task_im = ee.batch.Export.image.toDrive(image = classified, description=name, folder='AmazonBuiltUP_6', region=AOI_sede, scale=10, crs = 'EPSG:31981')
+    task_im = ee.batch.Export.image.toDrive(image = classified, description=name, folder='AmazonBuiltUp_MRF', region=AOI_sede, scale=10, crs = 'EPSG:31981')
     task_im.start()
     
     #Cria um dicionário com os resultados do RF
@@ -264,20 +264,20 @@ for i in sede_id:
     #Exporta os resultados do classificador em uma tabela no GDrive
     explain = ee.FeatureCollection(ee.Feature(None, ee.Dictionary(dict_)))
     N_explain = s + '_explain' 
-    task_explain=ee.batch.Export.table.toDrive(collection = explain, description = N_explain, folder = 'AmazonBuiltUP_6') 
+    task_explain=ee.batch.Export.table.toDrive(collection = explain, description = N_explain, folder = 'AmazonBuiltUp_MRF') 
     task_explain.start() 
     
     #Exporta os a importancia das variáveis do classificador em uma tabela no GDrive
     variable_importance = ee.FeatureCollection(ee.Feature(None, ee.Dictionary(dict_).get('importance')))
     N_ID = s + '_importance' 
-    task_i=ee.batch.Export.table.toDrive(collection = variable_importance, description = N_ID, folder = 'AmazonBuiltUP_6') 
+    task_i=ee.batch.Export.table.toDrive(collection = variable_importance, description = N_ID, folder = 'AmazonBuiltUp_MRF') 
     task_i.start()
     
     #Exporta a matrix de confusão em uma tabela no GDrive
     ta = classifier.confusionMatrix()
     train_accuracy = ee.Feature(None,{'matrix':ta.array()})
     N_AT = s + '_Acuracia_treino' 
-    task_it=ee.batch.Export.table.toDrive(collection = ee.FeatureCollection(train_accuracy), description = N_AT, folder = 'AmazonBuiltUP_6') 
+    task_it=ee.batch.Export.table.toDrive(collection = ee.FeatureCollection(train_accuracy), description = N_AT, folder = 'AmazonBuiltUp_MRF') 
     task_it.start()
     
     #Exporta a validação do classificador em uma tabela no GDrive
@@ -285,12 +285,12 @@ for i in sede_id:
     validated_valuesNoNulls = validated_values.filter(ee.Filter.notNull(validated_values.first().propertyNames()))
     validated_valuesNoNulls = validated_values.filter(ee.Filter.notNull(validated_values.first().propertyNames()))
     N_TDP= s + '_teste' 
-    taskTP=ee.batch.Export.table.toDrive(collection = validated_valuesNoNulls,description = N_TDP, folder = 'N_Single_classifier',fileFormat="SHP")
+    taskTP=ee.batch.Export.table.toDrive(collection = validated_valuesNoNulls,description = N_TDP, folder = 'AmazonBuiltUp_MRF',fileFormat="SHP")
     taskTP.start() 
     test_accuracy = validated_valuesNoNulls.errorMatrix('C_ID', 'classification',[1,2,3,4,5])
     test_accuracy_fe = ee.Feature(None,{'matrix':(test_accuracy).array()})
     N_TA = s + '_Acuracia_teste' 
-    task_ta=ee.batch.Export.table.toDrive(collection = ee.FeatureCollection(test_accuracy_fe), description = N_TA, folder = 'AmazonBuiltUP_6') 
+    task_ta=ee.batch.Export.table.toDrive(collection = ee.FeatureCollection(test_accuracy_fe), description = N_TA, folder = 'AmazonBuiltUp_MRF') 
     task_ta.start()
     print('Matrix de erro da validação: ', test_accuracy.getInfo())
     print('Acurácia global da validação: ', test_accuracy.accuracy().getInfo())
