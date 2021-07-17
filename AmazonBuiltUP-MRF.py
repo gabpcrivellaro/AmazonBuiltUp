@@ -208,7 +208,7 @@ for i in sede_id:
     #Mostra o número de árvores de decisão
     print("Número de árvores: ",trees)
     #cria uma string com todos os hiperparametros escolhidos para identificar os arquivos de saída
-    s = 'SINGLE_T'+str(trees)+'_W'+str(w)+'_DL'+str(dig_levels)
+    s = 'MRF_T'+str(trees)+'_W'+str(w)+'_DL'+str(dig_levels)
 
     #Utiliza a função compute_probabilistic_glcm para requantizar as bandas e gera a matrix GLCM e calcula as métricas
     #Renomeia todas as bandas de textura adicionando o nome da banda de origem e remover a a banda "glcm_maxcorr"
