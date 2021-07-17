@@ -246,9 +246,10 @@ for i in sede_id:
     task=ee.batch.Export.table.toDrive(collection = trainingNoNulls,description = N_TD, folder = 'AmazonBuiltUp_MRF')
     task.start()
     
-    #Conta o numero de amostras utilizadas no treinamento
-    #labels = trainingNoNulls.aggregate_histogram('C_ID').getInfo()
-    #print ('Labels:',labels)
+    #Conta o numero de amostras utilizadas no treinamento e mostra
+    labels = trainingNoNulls.aggregate_histogram('C_ID').getInfo()
+    print("ID das classes: Solo Exposto: 1; Área Construída: 2; Água: 3; Herbácea: 4; Arbórea: 5.")
+    print ('Labels:',labels)
     
     #Cria um classificador random forest e treina com as amostras coletadas.
     classifier = ee.Classifier.smileRandomForest(numberOfTrees=trees,bagFraction=1,seed=1).train(features= trainingNoNulls,classProperty='C_ID')
@@ -291,6 +292,7 @@ for i in sede_id:
     N_TDP= s + '_teste' 
     taskTP=ee.batch.Export.table.toDrive(collection = validated_valuesNoNulls,description = N_TDP, folder = 'AmazonBuiltUp_MRF',fileFormat="SHP")
     taskTP.start() 
+    
     #Calcula a matriz de erro
     test_accuracy = validated_valuesNoNulls.errorMatrix('C_ID', 'classification',[1,2,3,4,5])
     #Transforma a matriz de erro em uma feature (tabela)
@@ -299,7 +301,8 @@ for i in sede_id:
     N_TA = s + '_Acuracia_teste' 
     task_ta=ee.batch.Export.table.toDrive(collection = ee.FeatureCollection(test_accuracy_fe), description = N_TA, folder = 'AmazonBuiltUp_MRF') 
     task_ta.start()
-    print('Avaliação de Acurácia iniciada!')
+    
+    print('Classificação finalizada e dados exportados, Avaliação de Acurácia iniciada!')
     #Mostra a matriz de erro e calcula e mostra a acurácia global, acurácia do consumidor, acurácia do produtor e o coeficiente de kappa
     print('Matrix de erro da validação: ', test_accuracy.getInfo())
     print('Acurácia global da validação: ', test_accuracy.accuracy().getInfo())
@@ -310,5 +313,5 @@ for i in sede_id:
     print(Sede_nome, 'Pronto!')
 
 #Mostra que a classificação foi conclúida e mostra o valor das do pixel de cada classe
-print('Processamento concluído! - Solo Exposto: 1; Área Construída: 2; Água: 3; Herbácea: 4; Arbórea: 5.')
+print('Processamento concluído!')
 print('Fim!')
