@@ -227,7 +227,7 @@ for i in sede_id:
     #carregar as amostras
     sample = ee.FeatureCollection("users/gabrielcrivellarog/amostra_2020_ALL")
     #Cria uma coluna com valores aleatórios entre 0 e 1 para cada polígono
-    sample = sample.randomColumn()
+    sample = sample.randomColumn(seed=1)
     #Definir o percentual a ser utilziado para teste e treinamento
     split = 0.6
     #Cria uma camada vetorial com as amostras de treinamento
