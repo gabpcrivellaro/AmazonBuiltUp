@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 #######################################################################################################################
 #                                   AmazonBuiltUP - Single Random Forest - SRF                                        #
 #######################################################################################################################
@@ -303,4 +297,3 @@ print('kappa da validação: ', test_accuracy.kappa().getInfo())
 #Mostra que a classificação foi conclúida e mostra o valor das do pixel de cada classe
 print('Processamento concluído! - Solo Exposto: 1; Área Construída: 2; Água: 3; Herbácea: 4; Arbórea: 5.')
 print('Fim!')
-
