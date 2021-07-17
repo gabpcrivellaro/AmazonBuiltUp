@@ -5,7 +5,7 @@
 #Esse script foi criado para classificar imaagens Sentinel-2, também são utilizados dados do VIIRS,                   #
 #pontos de sedes municipais (IBGE) e amostras de treinamento                                                          #
 #O mapa temático final possui 5 classes: Solo Exposto; Área Construída, Água, Vegetação Arbórea e Vegetação Herbácea  #
-#              Autor: Gabriel Crivellaro Gonçalves                                                                    #
+#Autor: Gabriel Crivellaro Gonçalves                                                                                  #
 #######################################################################################################################
 
 #Importar as bibliotecas
