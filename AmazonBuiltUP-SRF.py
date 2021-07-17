@@ -231,9 +231,10 @@ task.start()
 classifier = ee.Classifier.smileRandomForest(numberOfTrees=trees,bagFraction=1,seed=1).train(features= trainingNoNulls,classProperty='C_ID')
 #Classifica a imagem com o Rabdom Forest
 classified = image_class.classify(classifier)
-#Conta o numero de amostras utilizadas no treinamento
-#labels = trainingNoNulls.aggregate_histogram('C_ID').getInfo()
-#print ('Labels:',labels)
+#Conta o numero de amostras utilizadas no treinamento e mostra
+labels = trainingNoNulls.aggregate_histogram('C_ID').getInfo()
+print("ID das classes: Solo Exposto: 1; Área Construída: 2; Água: 3; Herbácea: 4; Arbórea: 5.")
+print ('Labels:',labels)
 
 for i in sede_id:
     
@@ -300,6 +301,6 @@ print('Matrix do consumidor da validação: ', test_accuracy.consumersAccuracy()
 print('Acurácia do produtor da validação: ', test_accuracy.producersAccuracy().getInfo())
 print('kappa da validação: ', test_accuracy.kappa().getInfo())
 #Mostra que a classificação foi conclúida e mostra o valor das do pixel de cada classe
-print('Processamento concluído! - Solo Exposto: 1; Área Construída: 2; Água: 3; Herbácea: 4; Arbórea: 5.')
+print('Processamento concluído!')
 print('Fim!')
 
