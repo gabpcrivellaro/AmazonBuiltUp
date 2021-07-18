@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 #######################################################################################################################
 #                                   AmazonBuiltUP - Single Random Forest - SRF                                        #
 #######################################################################################################################
@@ -360,4 +354,3 @@ task_AV.start()
 #Mostra que a classificação foi conclúida e mostra o valor das do pixel de cada classe
 print('Processamento concluído!')
 print('Fim!')
-
